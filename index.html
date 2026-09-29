@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MindMirror — прототип v3 (с ИИ)</title>
+<title>MindMirror — прототип v4</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#45285a;--mut:#75658a;--leaf:#3f7d50;--leaf2:#dff0d8;--pink:#e58fb6;--lav:#cbb6ee;--line:#dcc9ef;--card:rgba(255,255,255,.86);
@@ -135,7 +135,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 
 <section class="s desk" id="s12"><span class="tag">Экран 12 · Чат с психологом</span>
  <h1>Чат с психологом</h1><div class="chat"><div class="msgs" id="msgs"></div>
-  <div class="send"><input id="ci" placeholder="Напишите сообщение" aria-label="Сообщение"><button onclick="send()">Отправить</button></div>
+  <div class="chips" id="qr"></div><div class="send"><input id="ci" placeholder="Напишите сообщение" aria-label="Сообщение"><button onclick="send()">Отправить</button></div>
   <div class="row"><button class="g" onclick="talk('s12')">Позвать психолога голосом</button><button class="g" onclick="go('s10')">Назад</button></div></div></section>
 
 <section class="s" id="s13" style="background:linear-gradient(135deg,#eaf6e3,#f7e6f3)"><span class="tag">Экран 13 · Психолог</span>
@@ -183,7 +183,7 @@ function go(id){document.querySelectorAll('.s').forEach(function(s){s.classList.
 $('hud').classList.toggle('on',['s6','s7','s8'].indexOf(id)>-1);paint()}
 function act(t,d){S.mood=Math.min(100,S.mood+d);paint();toast(t)}
 function pet(){act(S.fn+' довольно прижал уши. Спасибо за ласку!',4)}
-function restart(){hist=[];$('msgs').innerHTML='';S.mood=40;S.fn='Друг';$('nm').value='';$('cn').value='';go('s3')}
+function restart(){step=0;busy=false;$('msgs').innerHTML='';qr([]);S.mood=40;S.fn='Друг';$('nm').value='';$('cn').value='';go('s3')}
 function setName(){S.name=$('nm').value.trim()||'Гость';$('q').textContent=S.name+', есть какие-то жалобы?';go('s4')}
 function enter(){S.fn=$('cn').value.trim()||'Друг';S.mood=Math.max(20,46-document.querySelectorAll('.chip.on').length*6);go('s6')}
 function talk(f){S.from=f;var t=document.querySelectorAll('.chip.on'),a=[].map.call(t,function(x){return x.textContent});
@@ -198,37 +198,24 @@ b.onclick=function(){b.classList.toggle('on');ch=[].filter.call(document.querySe
 if(ch.length===3){ch.forEach(function(x){x.classList.remove('on')});ch=[];$('cp').textContent='Печенье готово! Друг в восторге.';act('Вы испекли печенье. Пахнет уютом.',12)}};$('ings').appendChild(b)});
 var ri=0,rep=['Понимаю. Это звучит тяжело. Что вы чувствуете прямо сейчас?','Вы не обязаны справляться в одиночку. Расскажите подробнее.','Спасибо, что доверяете. Что могло бы помочь вам сейчас?'];
 function add(t,me,sos){var d=document.createElement('div');d.className='msg'+(me?' me':'')+(sos?' sos':'');d.textContent=t;$('msgs').appendChild(d);d.scrollIntoView()}
-function openChat(){if(!$('msgs').children.length)add('Здравствуйте, '+S.name+'. Расскажите, как прошёл ваш день?');go('s12')}
-/* ====== НАСТРОЙКИ ИИ ====== */
-var GEMINI_API_KEY="AQ.Ab8RN6Lysck0qA7RJwVsnmR9purhwdrl3g18o6GUCqIUfpW6Gw"; // <-- вставьте ключ между кавычками (только для личных тестов!)
-var MODEL="gemini-3.8-flash";;            // если ошибка "model not found", смените название на актуальное из AI Studio
-var PROXY_URL="";                        // позже: адрес вашего сервера-посредника (тогда ключ в файле не нужен)
-var hist=[],busy=false;
-function sysPrompt(){var a=[].map.call(document.querySelectorAll('.chip.on'),function(x){return x.textContent});
-return 'Ты добрый виртуальный психолог в игре MindMirror. Пользователя зовут '+S.name+'. Его друга-пегаса зовут '+S.fn+'. '
-+(a.length?'Пользователь отметил: '+a.join(', ')+'. ':'')
-+'Отвечай по-русски, тепло и коротко (2-3 предложения), задавай не больше одного вопроса. '
-+'Не ставь диагнозы, не давай медицинских советов и не назначай лекарства. Поддерживай, помогай посмотреть на ситуацию со стороны, предлагай простые приёмы (дыхание, прогулка, разговор с близким). '
-+'Если человеку тяжело, мягко напомни, что ты игра, а не замена специалисту.'}
-async function askAI(){
- var body={systemInstruction:{parts:[{text:sysPrompt()}]},contents:hist,generationConfig:{maxOutputTokens:800,temperature:0.8}};
- var url=PROXY_URL||('https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent');
- var h={'Content-Type':'application/json'};if(!PROXY_URL)h['x-goog-api-key']=GEMINI_API_KEY;
- var r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify(body)});var d=await r.json();
- if(!r.ok)throw new Error((d.error&&d.error.message)||('Ошибка '+r.status));
- var p=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts;
- if(!p||!p[0]||!p[0].text)throw new Error('Пустой ответ');return p[0].text.trim()}
-async function send(){var v=$('ci').value.trim();if(!v||busy)return;add(v,1);$('ci').value='';
- if(/не хочу жить|умереть|суицид|убить себя/i.test(v)){add('Мне важно, чтобы вы были в безопасности. Позвоните 112 или близкому человеку прямо сейчас.',0,1);return}
- hist.push({role:'user',parts:[{text:v}]});busy=true;add('печатает…');var typing=$('msgs').lastChild;
- try{if(GEMINI_API_KEY.indexOf('ВСТАВЬТЕ')===0&&!PROXY_URL)throw new Error('Ключ не вставлен');
-  var t=await askAI();typing.remove();add(t);hist.push({role:'model',parts:[{text:t}]});S.mood=Math.min(100,S.mood+3);paint()}
- catch(e){typing.remove();var f=rep[ri++%3];add(f);hist.push({role:'model',parts:[{text:f}]});console.warn('ИИ недоступен:',e.message);toast('ИИ недоступен ('+e.message.slice(0,60)+'). Показан запасной ответ.')}
- busy=false}
+/* ====== ЗАГОТОВЛЕННЫЙ ДИАЛОГ (тексты можно менять здесь) ====== */
+var step=0,busy=false;
+var NEG=/не очень|не хорош|плох|тревож|устал|тяжел|груст|так же|хуже|ужас/i,POS=/хорош|отличн|супер|гуд|good|нормальн|лучше|класс|отлично/i;
+function qr(a){var q=$('qr');q.innerHTML='';a.forEach(function(t){var b=document.createElement('button');b.className='chip';b.textContent=t;b.onclick=function(){$('ci').value=t;send()};q.appendChild(b)})}
+function openChat(){if(!$('msgs').children.length){step=0;add('Привет, '+S.name+'! Как у тебя дела?');qr(['Нормально','Тревожно','Устал(а)'])}go('s12')}
+function reply(v){var neg=NEG.test(v),pos=POS.test(v)&&!neg;
+ if(step===0){return pos?{t:'Здорово, рад это слышать! А как ты себя чувствуешь прямо сейчас?',up:3,q:['Уже лучше','Так же']}
+  :{t:'Мне очень жаль, что тебе так непросто. Ты не один, я рядом. А как ты сейчас себя чувствуешь?',up:2,q:['Уже лучше','Так же','Хуже']}}
+ if(step===1){return neg?{t:'Понимаю. Давай сделаем вместе три глубоких вдоха: вдох на четыре счёта, выдох на шесть. Я рядом. Хочешь вернуться в комнату к другу?',up:3}
+  :{t:'Это круто! Я очень рад, что тебе стало легче. Ты молодец, что нашёл время для себя. Возвращайся сюда в любой момент.',up:10}}
+ return{t:'Я рядом. Если хочешь, вернись в комнату: друг по тебе соскучился.',up:2}}
+function send(){var v=$('ci').value.trim();if(!v||busy)return;add(v,1);$('ci').value='';qr([]);
+ if(/не хочу жить|умереть|суицид|убить себя/i.test(v)){add('Мне важно, чтобы ты был в безопасности. Позвони 112 или близкому человеку прямо сейчас.',0,1);return}
+ busy=true;add('печатает…');var ty=$('msgs').lastChild;
+ setTimeout(function(){ty.remove();var r=reply(v);add(r.t);S.mood=Math.min(100,S.mood+r.up);paint();step++;qr(r.q||[]);busy=false},900)}
 $('ci').onkeydown=function(e){if(e.key==='Enter')send()};
 paint();
 </script>
 </body>
 </html>
-
 
