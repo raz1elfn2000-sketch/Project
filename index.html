@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MindMirror — прототип v2</title>
+<title>MindMirror — прототип v3 (с ИИ)</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#45285a;--mut:#75658a;--leaf:#3f7d50;--leaf2:#dff0d8;--pink:#e58fb6;--lav:#cbb6ee;--line:#dcc9ef;--card:rgba(255,255,255,.86);
@@ -183,7 +183,7 @@ function go(id){document.querySelectorAll('.s').forEach(function(s){s.classList.
 $('hud').classList.toggle('on',['s6','s7','s8'].indexOf(id)>-1);paint()}
 function act(t,d){S.mood=Math.min(100,S.mood+d);paint();toast(t)}
 function pet(){act(S.fn+' довольно прижал уши. Спасибо за ласку!',4)}
-function restart(){S.mood=40;S.fn='Друг';$('nm').value='';$('cn').value='';go('s3')}
+function restart(){hist=[];$('msgs').innerHTML='';S.mood=40;S.fn='Друг';$('nm').value='';$('cn').value='';go('s3')}
 function setName(){S.name=$('nm').value.trim()||'Гость';$('q').textContent=S.name+', есть какие-то жалобы?';go('s4')}
 function enter(){S.fn=$('cn').value.trim()||'Друг';S.mood=Math.max(20,46-document.querySelectorAll('.chip.on').length*6);go('s6')}
 function talk(f){S.from=f;var t=document.querySelectorAll('.chip.on'),a=[].map.call(t,function(x){return x.textContent});
@@ -199,12 +199,36 @@ if(ch.length===3){ch.forEach(function(x){x.classList.remove('on')});ch=[];$('cp'
 var ri=0,rep=['Понимаю. Это звучит тяжело. Что вы чувствуете прямо сейчас?','Вы не обязаны справляться в одиночку. Расскажите подробнее.','Спасибо, что доверяете. Что могло бы помочь вам сейчас?'];
 function add(t,me,sos){var d=document.createElement('div');d.className='msg'+(me?' me':'')+(sos?' sos':'');d.textContent=t;$('msgs').appendChild(d);d.scrollIntoView()}
 function openChat(){if(!$('msgs').children.length)add('Здравствуйте, '+S.name+'. Расскажите, как прошёл ваш день?');go('s12')}
-function send(){var v=$('ci').value.trim();if(!v)return;add(v,1);$('ci').value='';setTimeout(function(){
-if(/не хочу жить|умереть|суицид|убить себя/i.test(v))add('Мне важно, чтобы вы были в безопасности. Позвоните 112 или близкому человеку прямо сейчас.',0,1);
-else{add(rep[ri++%3]);S.mood=Math.min(100,S.mood+3);paint()}},600)}
+/* ====== НАСТРОЙКИ ИИ ====== */
+var GEMINI_API_KEY="AQ.Ab8RN6Lysck0qA7RJwVsnmR9purhwdrl3g18o6GUCqIUfpW6Gw"; // <-- вставьте ключ между кавычками (только для личных тестов!)
+var MODEL="gemini-2.5-flash";            // если ошибка "model not found", смените название на актуальное из AI Studio
+var PROXY_URL="";                        // позже: адрес вашего сервера-посредника (тогда ключ в файле не нужен)
+var hist=[],busy=false;
+function sysPrompt(){var a=[].map.call(document.querySelectorAll('.chip.on'),function(x){return x.textContent});
+return 'Ты добрый виртуальный психолог в игре MindMirror. Пользователя зовут '+S.name+'. Его друга-пегаса зовут '+S.fn+'. '
++(a.length?'Пользователь отметил: '+a.join(', ')+'. ':'')
++'Отвечай по-русски, тепло и коротко (2-3 предложения), задавай не больше одного вопроса. '
++'Не ставь диагнозы, не давай медицинских советов и не назначай лекарства. Поддерживай, помогай посмотреть на ситуацию со стороны, предлагай простые приёмы (дыхание, прогулка, разговор с близким). '
++'Если человеку тяжело, мягко напомни, что ты игра, а не замена специалисту.'}
+async function askAI(){
+ var body={systemInstruction:{parts:[{text:sysPrompt()}]},contents:hist,generationConfig:{maxOutputTokens:800,temperature:0.8}};
+ var url=PROXY_URL||('https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent');
+ var h={'Content-Type':'application/json'};if(!PROXY_URL)h['x-goog-api-key']=GEMINI_API_KEY;
+ var r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify(body)});var d=await r.json();
+ if(!r.ok)throw new Error((d.error&&d.error.message)||('Ошибка '+r.status));
+ var p=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts;
+ if(!p||!p[0]||!p[0].text)throw new Error('Пустой ответ');return p[0].text.trim()}
+async function send(){var v=$('ci').value.trim();if(!v||busy)return;add(v,1);$('ci').value='';
+ if(/не хочу жить|умереть|суицид|убить себя/i.test(v)){add('Мне важно, чтобы вы были в безопасности. Позвоните 112 или близкому человеку прямо сейчас.',0,1);return}
+ hist.push({role:'user',parts:[{text:v}]});busy=true;add('печатает…');var typing=$('msgs').lastChild;
+ try{if(GEMINI_API_KEY.indexOf('ВСТАВЬТЕ')===0&&!PROXY_URL)throw new Error('Ключ не вставлен');
+  var t=await askAI();typing.remove();add(t);hist.push({role:'model',parts:[{text:t}]});S.mood=Math.min(100,S.mood+3);paint()}
+ catch(e){typing.remove();var f=rep[ri++%3];add(f);hist.push({role:'model',parts:[{text:f}]});console.warn('ИИ недоступен:',e.message);toast('ИИ недоступен ('+e.message.slice(0,60)+'). Показан запасной ответ.')}
+ busy=false}
 $('ci').onkeydown=function(e){if(e.key==='Enter')send()};
 paint();
 </script>
 </body>
 </html>
+
 
