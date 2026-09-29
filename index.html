@@ -1,1 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MindMirror — прототип v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#45285a;--mut:#75658a;--leaf:#3f7d50;--leaf2:#dff0d8;--pink:#e58fb6;--lav:#cbb6ee;--line:#dcc9ef;--card:rgba(255,255,255,.86);
+--irid:linear-gradient(120deg,#f7c1d8,#f8e2a4,#bfe6c4,#bcd8f4,#d8c3f4);--m1:#f6a9c6;--m2:#a9e3d2}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--ink);display:flex;align-items:center;justify-content:center;padding:12px;
+background:radial-gradient(circle at 15% 20%,#f4f8dc,transparent 50%),radial-gradient(circle at 85% 80%,#f6dcef,transparent 50%),#edf6e6}
+#app{position:relative;width:100%;max-width:980px;height:min(650px,100%);background:#fffdf6;border:2px solid var(--line);border-radius:26px;overflow:hidden;box-shadow:0 12px 40px #b79be033}
+.s{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;overflow:auto}
+.s.on{display:flex}
+.tag{position:absolute;left:16px;bottom:10px;font-size:12px;color:var(--mut);z-index:6}
+h1{font:700 clamp(26px,4.4vw,40px)/1.1 "Cormorant Garamond",serif;margin:0}
+p{margin:0;color:var(--mut);max-width:470px;line-height:1.5}
+input,textarea{font:inherit;color:var(--ink);background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px 16px;width:min(430px,100%)}
+textarea{height:80px;resize:none}
+button{font:inherit;font-weight:700;cursor:pointer;border:0;border-radius:16px;padding:12px 24px;background:var(--leaf);color:#fff}
+button.g{background:#fff;color:var(--ink);border:2px solid var(--line)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--pink);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:540px}
+.chip{background:#fff;color:var(--ink);border:2px solid var(--line);padding:8px 16px}
+.chip.on{background:var(--irid);border-color:var(--pink)}
+.card{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:14px 16px;text-align:left}
+/* комнаты */
+.room{position:absolute;inset:0;background:linear-gradient(#e6f5e1 0 64%,#efe0cf 64%)}
+.room:after{content:"";position:absolute;left:50%;bottom:6%;width:340px;height:74px;border-radius:50%;background:linear-gradient(90deg,#f6c9dc,#e2d3f6);transform:translateX(-50%)}
+.win{position:absolute;top:13%;width:150px;height:105px;border-radius:75px 75px 12px 12px;border:5px solid #fff;background:linear-gradient(#fdeeb6,#cfeecf);box-shadow:0 0 0 2px var(--line)}
+.who{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);width:210px;background:none;padding:0;z-index:2}
+.pn{width:100%;display:block;overflow:visible}
+.out{background:linear-gradient(#d3ecf8 0 56%,#bfe3b5 56%)}.out:after{display:none}
+.tree{position:absolute;bottom:40%;width:120px;height:130px;border-radius:50%;background:#a6d6a2}
+.pill{position:absolute;z-index:3;background:#fff;color:var(--ink);border:2px solid var(--line);box-shadow:0 4px 0 var(--lav)}
+.l{left:16px;top:42%}.r{right:16px;top:42%}.b{left:50%;bottom:16px;transform:translateX(-50%)}
+.bf{position:absolute;width:22px;height:16px;animation:fl 7s ease-in-out infinite;z-index:1}
+@keyframes fl{50%{transform:translate(18px,-26px) rotate(12deg)}}
+.hud{position:absolute;top:12px;left:12px;right:12px;display:none;align-items:center;gap:12px;z-index:5;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:8px 14px;font-size:14px}
+.hud.on{display:flex}.hud b{font:700 20px "Cormorant Garamond",serif}
+.meter{flex:1;height:12px;border-radius:8px;background:#efe6f8;overflow:hidden;max-width:240px}
+.meter i{display:block;height:100%;background:var(--irid);width:40%;transition:width .5s}
+.hud button{padding:6px 12px;margin-left:auto;font-size:13px}
+#toast{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:16px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:9;max-width:84%;text-align:center}
+#toast.on{opacity:1}
+.bar{position:absolute;left:0;right:0;bottom:0;background:#f6edfb;padding:14px 60px 14px 24px;font-size:14px;color:var(--mut);border-top:2px solid var(--line)}
+/* компьютер и новости */
+.desk{background:linear-gradient(135deg,#eaf6e3,#f7e6f3);justify-content:flex-start;padding-top:74px}
+.tiles{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.tile{width:170px;height:150px;flex-direction:column;background:var(--card);color:var(--ink);border:2px solid var(--line);font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px}
+.tile span{width:56px;height:56px;border-radius:50%;background:var(--irid);display:grid;place-items:center;font-size:26px}
+.bento{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:110px;gap:12px;width:min(760px,100%)}
+.bento .card:nth-child(1){grid-row:span 2;background:#e6f5df}.bento .card:nth-child(4){grid-column:span 2;background:#f7e6f3}
+.bento .card:nth-child(2){background:#fdf3d0}.bento .card:nth-child(3){background:#e3eefa}
+.bento b{font:700 19px/1.1 "Cormorant Garamond",serif;display:block;margin-bottom:4px}
+/* чат */
+.chat{width:min(680px,100%);flex:1;display:flex;flex-direction:column;gap:10px;min-height:0}
+.msgs{flex:1;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:4px}
+.msg{max-width:78%;padding:9px 14px;border-radius:18px;background:#fff;border:2px solid var(--line);text-align:left}
+.msg.me{align-self:flex-end;background:var(--leaf2);border-color:#b8dcb0}
+.msg.sos{border-color:#d9534f;background:#fff1f0}
+.send{display:flex;gap:8px}.send input{flex:1;width:auto}
+/* психолог */
+.orb{width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#f7c1d8 35%,#bfe6c4 65%,#d8c3f4);border:4px solid #fff;box-shadow:0 0 0 3px var(--lav),0 0 40px #f7c1d888;display:grid;place-items:center;font:700 44px "Cormorant Garamond",serif;color:#fff;text-shadow:0 2px 8px #b79be0}
+.bubble{max-width:420px}
+.side{position:absolute;left:0;top:0;bottom:0;width:250px;background:#f6edfb;border-right:2px solid var(--line);padding:16px;text-align:left;display:flex;flex-direction:column;gap:10px;z-index:4;overflow:auto;font-size:14px}
+.side h2{font:700 22px "Cormorant Garamond",serif;margin:0;display:flex;justify-content:space-between;align-items:center}
+.side h2 button{padding:2px 10px;background:#fff;color:var(--ink);border:2px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ing{background:#fff;color:var(--ink);border:2px solid var(--line);padding:14px 20px}.ing.on{background:var(--irid);border-color:var(--pink)}
+@media (max-width:640px){.side{position:relative;width:100%;border:0}.bento{grid-template-columns:1fr 1fr}.win{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="gm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--m1)"/><stop offset="1" style="stop-color:var(--m2)"/></linearGradient></defs></svg>
+<div id="app">
+<div class="hud" id="hud"><b>MindMirror</b><span id="hn"></span><div class="meter"><i id="mt"></i></div><span id="ml"></span><button class="g" onclick="restart()">Начать заново</button></div>
+<div id="toast" role="status"></div>
+
+<section class="s on" id="s3"><span class="tag">Экран 3 · Имя</span>
+ <h1>Как вас зовут?</h1><p>Можно придумать псевдоним. Всё остаётся анонимным.</p>
+ <input id="nm" maxlength="20" placeholder="Ваше имя" aria-label="Ваше имя"><button onclick="setName()">Далее</button></section>
+
+<section class="s" id="s4"><span class="tag">Экран 4 · Жалобы</span>
+ <h1 id="q"></h1><p>Выберите всё, что подходит. Так мы поймём, как поддержать вас.</p>
+ <div class="chips" id="chips"></div><textarea id="txt" placeholder="Своими словами (по желанию)" aria-label="Своими словами"></textarea>
+ <div class="row"><button class="g" onclick="go('s3')">Назад</button><button onclick="go('s5')">Далее</button></div></section>
+
+<section class="s" id="s5"><span class="tag">Экран 5 · Персонаж</span>
+ <h1>Ваш новый друг</h1><div class="pony" style="width:230px"></div>
+ <input id="cn" maxlength="16" placeholder="Как зовут друга?" aria-label="Имя друга"><div class="row" id="sw"></div>
+ <button onclick="enter()">Войти в комнату</button>
+ <div class="bar">Ваш друг переживает то же, что и вы. Поддерживая его, вы учитесь мягче относиться к себе.</div></section>
+
+<section class="s" id="s6"><span class="tag">Экран 6 · Основная комната</span>
+ <div class="room"><div class="win" style="left:calc(50% - 75px)"></div>
+  <button class="who pony" onclick="pet()" aria-label="Погладить друга"></button>
+  <button class="pill l" onclick="go('s8')">Кухня</button><button class="pill r" onclick="go('s7')">Комната с компьютером</button>
+  <button class="pill b" onclick="go('s9')">Выход</button></div></section>
+
+<section class="s" id="s8"><span class="tag">Экран 8 · Кухня</span>
+ <div class="room"><div class="win" style="left:20%"></div><div class="who pony"></div>
+  <button class="pill l" style="top:30%" onclick="act('Вы заварили ромашковый чай. Друг расслабился.',10)">Заварить чай</button>
+  <button class="pill r" onclick="go('s16')">Игры с готовкой</button>
+  <button class="pill b" onclick="go('s6')">Назад в комнату</button></div></section>
+
+<section class="s" id="s16"><span class="tag">Экран 16 · Игры с готовкой</span>
+ <h1>Печенье «Цветочная фея»</h1><p id="cp">Выберите 3 ингредиента для печенья.</p>
+ <div class="grid" id="ings"></div><div class="row"><button class="g" onclick="go('s8')">Назад на кухню</button></div></section>
+
+<section class="s" id="s7"><span class="tag">Экран 7 · Комната с компьютером</span>
+ <div class="room"><div class="win" style="left:72%"></div><div class="who pony" style="left:26%"></div>
+  <button class="pill" style="left:50%;top:30%;width:230px;height:130px;font-size:18px;background:linear-gradient(#fff,#efe6f8)" onclick="go('s10')">Включить компьютер</button>
+  <button class="pill b" onclick="go('s6')">Назад в комнату</button></div></section>
+
+<section class="s desk" id="s10"><span class="tag">Экран 10 · Компьютер</span>
+ <h1>Компьютер</h1><div class="tiles">
+  <button class="tile" onclick="go('s14')"><span>✿</span>Новости</button>
+  <button class="tile" onclick="openChat()"><span>❀</span>Чат с психологом</button></div>
+ <button class="g" onclick="go('s7')">Выключить</button></section>
+
+<section class="s desk" id="s14"><span class="tag">Экран 14 · Новости</span>
+ <h1>Хорошие новости</h1><div class="bento">
+  <div class="card"><b>В городе открылся новый парк</b>Пример новости для прототипа. Много зелени и тихих скамеек.</div>
+  <div class="card"><b>Волонтёры помогли приюту</b>Пример новости.</div>
+  <div class="card"><b>Прогулка снижает стресс</b>Пример новости.</div>
+  <div class="card"><b>Совет дня: три глубоких вдоха</b>Вдох на четыре счёта, выдох на шесть. Повторите три раза.</div></div>
+ <button class="g" onclick="go('s10')">Назад</button></section>
+
+<section class="s desk" id="s12"><span class="tag">Экран 12 · Чат с психологом</span>
+ <h1>Чат с психологом</h1><div class="chat"><div class="msgs" id="msgs"></div>
+  <div class="send"><input id="ci" placeholder="Напишите сообщение" aria-label="Сообщение"><button onclick="send()">Отправить</button></div>
+  <div class="row"><button class="g" onclick="talk('s12')">Позвать психолога голосом</button><button class="g" onclick="go('s10')">Назад</button></div></div></section>
+
+<section class="s" id="s13" style="background:linear-gradient(135deg,#eaf6e3,#f7e6f3)"><span class="tag">Экран 13 · Психолог</span>
+ <div class="orb">ИИ</div><div class="card bubble" id="pb"></div>
+ <div class="row"><button onclick="go('s15')">Рассказать подробнее</button><button class="g" onclick="go(S.from)">Назад</button></div></section>
+
+<section class="s" id="s15" style="background:linear-gradient(135deg,#eaf6e3,#f7e6f3)"><span class="tag" style="left:266px">Экран 15 · Разговор с психологом</span>
+ <div class="side"><h2>Разговор <button onclick="go('s13')" aria-label="Закрыть">✕</button></h2>
+  <div class="card" id="notes"></div><div class="card">Совет: спросите себя, что бы вы сказали другу в такой же ситуации.</div></div>
+ <div class="orb">ИИ</div><div class="card bubble">Спасибо, что делитесь. Вы уже сделали важный шаг. Хотите разобрать это вместе?</div>
+ <button class="g" onclick="act('Друг чувствует вашу поддержку.',6);go('s6')">Вернуться домой</button></section>
+
+<section class="s" id="s9"><span class="tag">Экран 9 · Выход</span>
+ <h1>Выйти на улицу?</h1><p>Свежий воздух помогает. Друг будет ждать вас дома.</p>
+ <div class="row"><button onclick="go('s11')">Выйти</button><button class="g" onclick="go('s6')">Остаться</button></div></section>
+
+<section class="s" id="s11"><span class="tag">Экран 11 · Улица</span>
+ <div class="room out"><div class="tree" style="left:8%"></div><div class="tree" style="right:10%"></div></div>
+ <div class="card" style="position:absolute;right:16px;top:74px;font-size:14px" id="stat"></div>
+ <div style="position:relative;display:flex;flex-direction:column;gap:12px;align-items:center" class="card">
+  <h1>Свежий воздух</h1><p>Как вы себя чувствуете?</p>
+  <div class="row"><button class="g" onclick="act('Спасибо. Возвращайтесь, когда захотите.',8)">Лучше</button><button class="g" onclick="act('Спасибо. Друг будет ждать вас.',2)">Так же</button><button class="g" onclick="act('Спасибо, что честны. Можно поговорить с психологом.',0)">Хуже</button></div>
+  <div class="row"><button onclick="talk('s11')">К психологу</button><button class="g" onclick="go('s6')">Домой</button></div></div></section>
+</div>
+
+<script>
+var S={name:'',fn:'Друг',mood:40,from:'s6'},$=function(i){return document.getElementById(i)},tt;
+function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){e.classList.remove('on')},2600)}
+function pony(){var m=S.mood,mo=m<35?'M58 114q5-4 10 0':m<65?'M58 112h11':'M57 110q6 8 13 0',b='M0 0q-9-10-11-1 1 9 11 1 9 8 11-1-2-9-11 1z';
+return '<svg class="pn" viewBox="0 0 230 250" role="img" aria-label="Друг-пегас"><g stroke="#8a6a9c" stroke-width="2" stroke-linejoin="round">'
++'<path d="M150 140C210 125 228 190 196 238 212 196 190 172 158 170Z" fill="url(#gm)"/>'
++'<path d="M120 122C140 60 190 30 224 40 208 72 190 104 150 132Z" fill="#f8eedb" stroke="#a9dccb"/><path d="M110 120C115 76 150 50 176 52 166 82 150 106 130 126Z" fill="#efe1c6" stroke="#a9dccb"/>'
++'<rect x="84" y="172" width="17" height="60" rx="8" fill="#f8e3b8"/><rect x="106" y="176" width="17" height="56" rx="8" fill="#f4dcae"/><rect x="134" y="176" width="17" height="56" rx="8" fill="#f4dcae"/><rect x="156" y="172" width="17" height="60" rx="8" fill="#f8e3b8"/>'
++'<ellipse cx="93" cy="226" rx="14" ry="10" fill="#bfeadd" stroke="none"/><ellipse cx="165" cy="226" rx="14" ry="10" fill="#bfeadd" stroke="none"/>'
++'<ellipse cx="120" cy="156" rx="58" ry="36" fill="#f8e3b8"/><path d="M62 118L112 130V164L70 150Z" fill="#f8e3b8"/>'
++'<circle cx="80" cy="94" r="38" fill="#f8e3b8"/><path d="M50 68C34 80 36 102 50 108 56 96 58 84 58 72Z" fill="#f7cfc4"/>'
++'<path d="M92 50C48 38 26 84 38 132 42 172 28 200 50 236 60 192 62 162 60 132 60 100 70 82 104 70Z" fill="url(#gm)"/>'
++'<path d="M104 62C128 92 102 132 110 178 86 150 92 100 94 66Z" fill="url(#gm)" opacity=".85"/></g>'
++'<ellipse cx="70" cy="96" rx="10" ry="12" fill="#8fd8d0" stroke="#45285a" stroke-width="2"/><circle cx="71" cy="99" r="5.5" fill="#3c6f78"/><circle cx="68" cy="93" r="3" fill="#fff"/>'
++'<ellipse cx="60" cy="110" rx="6" ry="3.5" fill="#f28fa8" opacity=".6"/><path d="'+mo+'" fill="none" stroke="#45285a" stroke-width="2.5" stroke-linecap="round" transform="translate(-2 4)"/>'
++'<g fill="#f28fb0" stroke="#c25b86" stroke-width="1"><path transform="translate(126 150)" d="'+b+'"/><path transform="translate(148 168) scale(.7)" d="'+b+'"/><path transform="translate(112 170) scale(.6)" d="'+b+'"/></g></svg>'}
+function paint(){var m=S.mood;$('mt').style.width=m+'%';$('hn').textContent=S.fn;$('ml').textContent=m<35?'тревожно':m<65?'спокойнее':'на душе светло';
+document.querySelectorAll('.pony').forEach(function(e){e.innerHTML=pony()});$('stat').innerHTML='<b>Прогресс</b><br>Настроение друга: '+m+'%<br>Дней подряд: 1'}
+function go(id){document.querySelectorAll('.s').forEach(function(s){s.classList.toggle('on',s.id===id)});
+$('hud').classList.toggle('on',['s6','s7','s8'].indexOf(id)>-1);paint()}
+function act(t,d){S.mood=Math.min(100,S.mood+d);paint();toast(t)}
+function pet(){act(S.fn+' довольно прижал уши. Спасибо за ласку!',4)}
+function restart(){S.mood=40;S.fn='Друг';$('nm').value='';$('cn').value='';go('s3')}
+function setName(){S.name=$('nm').value.trim()||'Гость';$('q').textContent=S.name+', есть какие-то жалобы?';go('s4')}
+function enter(){S.fn=$('cn').value.trim()||'Друг';S.mood=Math.max(20,46-document.querySelectorAll('.chip.on').length*6);go('s6')}
+function talk(f){S.from=f;var t=document.querySelectorAll('.chip.on'),a=[].map.call(t,function(x){return x.textContent});
+$('pb').textContent='Здравствуйте, '+S.name+'. Я рядом. С чего начнём?';$('notes').textContent=a.length?'Вы отметили: '+a.join(', ')+'.':'Вы пока ничего не отметили.';go('s13')}
+['Тревога','Выгорание','Усталость','Тяжело от новостей','Одиночество','Плохой сон'].forEach(function(t){var b=document.createElement('button');b.className='chip';b.textContent=t;b.onclick=function(){b.classList.toggle('on')};$('chips').appendChild(b)});
+[['#f6a9c6','#a9e3d2'],['#cbb6ee','#a9d0f2'],['#f8c9a0','#c9e8b4']].forEach(function(c,i){var b=document.createElement('button');b.style.cssText='width:42px;height:42px;padding:0;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);background:linear-gradient('+c[0]+','+c[1]+')';b.setAttribute('aria-label','Цвет гривы '+(i+1));
+b.onclick=function(){document.documentElement.style.setProperty('--m1',c[0]);document.documentElement.style.setProperty('--m2',c[1])};$('sw').appendChild(b)});
+document.querySelectorAll('.room:not(.out)').forEach(function(r){for(var i=0;i<6;i++){var b=document.createElement('div');b.className='bf';b.style.cssText='left:'+(15+i*14)+'%;top:'+(20+(i*23)%40)+'%;animation-delay:-'+i*1.3+'s';
+b.innerHTML='<svg viewBox="-12 -10 24 20"><path d="M0 0q-9-10-11-1 1 9 11 1 9 8 11-1-2-9-11 1z" fill="#fff" stroke="#f28fb0" stroke-width="1.5"/></svg>';r.appendChild(b)}});
+var ch=[];['Мука','Мёд','Ромашка','Лаванда','Овсянка','Ваниль'].forEach(function(t){var b=document.createElement('button');b.className='ing';b.textContent=t;
+b.onclick=function(){b.classList.toggle('on');ch=[].filter.call(document.querySelectorAll('.ing.on'),Boolean);$('cp').textContent='Выбрано: '+ch.length+' из 3';
+if(ch.length===3){ch.forEach(function(x){x.classList.remove('on')});ch=[];$('cp').textContent='Печенье готово! Друг в восторге.';act('Вы испекли печенье. Пахнет уютом.',12)}};$('ings').appendChild(b)});
+var ri=0,rep=['Понимаю. Это звучит тяжело. Что вы чувствуете прямо сейчас?','Вы не обязаны справляться в одиночку. Расскажите подробнее.','Спасибо, что доверяете. Что могло бы помочь вам сейчас?'];
+function add(t,me,sos){var d=document.createElement('div');d.className='msg'+(me?' me':'')+(sos?' sos':'');d.textContent=t;$('msgs').appendChild(d);d.scrollIntoView()}
+function openChat(){if(!$('msgs').children.length)add('Здравствуйте, '+S.name+'. Расскажите, как прошёл ваш день?');go('s12')}
+function send(){var v=$('ci').value.trim();if(!v)return;add(v,1);$('ci').value='';setTimeout(function(){
+if(/не хочу жить|умереть|суицид|убить себя/i.test(v))add('Мне важно, чтобы вы были в безопасности. Позвоните 112 или близкому человеку прямо сейчас.',0,1);
+else{add(rep[ri++%3]);S.mood=Math.min(100,S.mood+3);paint()}},600)}
+$('ci').onkeydown=function(e){if(e.key==='Enter')send()};
+paint();
+</script>
+</body>
+</html>
 
