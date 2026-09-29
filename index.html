@@ -201,7 +201,7 @@ function add(t,me,sos){var d=document.createElement('div');d.className='msg'+(me
 function openChat(){if(!$('msgs').children.length)add('Здравствуйте, '+S.name+'. Расскажите, как прошёл ваш день?');go('s12')}
 /* ====== НАСТРОЙКИ ИИ ====== */
 var GEMINI_API_KEY="AQ.Ab8RN6Lysck0qA7RJwVsnmR9purhwdrl3g18o6GUCqIUfpW6Gw"; // <-- вставьте ключ между кавычками (только для личных тестов!)
-var MODEL="gemini-2.5-flash";            // если ошибка "model not found", смените название на актуальное из AI Studio
+var MODEL="gemini-3.8-flash";;            // если ошибка "model not found", смените название на актуальное из AI Studio
 var PROXY_URL="";                        // позже: адрес вашего сервера-посредника (тогда ключ в файле не нужен)
 var hist=[],busy=false;
 function sysPrompt(){var a=[].map.call(document.querySelectorAll('.chip.on'),function(x){return x.textContent});
