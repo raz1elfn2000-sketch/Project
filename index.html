@@ -161,7 +161,7 @@ button.g{border:1px solid var(--line);background:#fffdf9}.card{border:1px solid 
 <section class="s desk" id="s10"><span class="tag">Экран 10 · Компьютер</span>
  <h1>Компьютер</h1><div class="tiles">
   <button class="tile" onclick="go('s14')"><span>✿</span>Новости</button>
-  <button class="tile" onclick="openChat()"><span>❀</span>Чат поддержки · демо</button></div>
+  <button class="tile" onclick="openChat()"><span>❀</span>Чат поддержки</button></div>
  <button class="g" onclick="go('s7')">Выключить</button></section>
 
 <section class="s desk" id="s14"><span class="tag">Экран 14 · Новости</span>
@@ -172,8 +172,8 @@ button.g{border:1px solid var(--line);background:#fffdf9}.card{border:1px solid 
   <div class="card"><b>Совет дня: три глубоких вдоха</b>Вдох на четыре счёта, выдох на шесть. Повторите три раза.</div></div>
  <button class="g" onclick="go('s10')">Назад</button></section>
 
-<section class="s desk" id="s12"><span class="tag">Экран 12 · Чат поддержки · демо</span>
- <h1>Чат поддержки</h1><p id="aiStatus" class="notice">Демонстрационный режим · AI не подключён</p><button class="g" onclick="go('aiSettings')">Настроить Gemini</button><div class="chat"><div class="msgs" id="msgs" role="log" aria-live="polite"></div>
+<section class="s desk" id="s12"><span class="tag">Экран 12 · Чат поддержки</span>
+ <h1>Чат поддержки</h1><p id="aiStatus" class="notice">AI-поддержка · сообщения обрабатываются Google Gemini</p><div class="chat"><div class="msgs" id="msgs" role="log" aria-live="polite"></div>
   <div class="chips" id="qr"></div><div class="send"><input id="ci" placeholder="Напишите сообщение" aria-label="Сообщение"><button onclick="send()">Отправить</button></div>
   <div class="row"><button class="g" onclick="talk('s12')">Открыть карточку поддержки</button><button class="g" onclick="go('s10')">Назад</button></div></div></section>
 
@@ -199,10 +199,10 @@ button.g{border:1px solid var(--line);background:#fffdf9}.card{border:1px solid 
   <div class="row"><button class="g" onclick="act('Спасибо. Возвращайтесь, когда захотите.',8)">Лучше</button><button class="g" onclick="act('Спасибо. Друг будет ждать вас.',2)">Так же</button><button class="g" onclick="act('Спасибо, что честны. Можно поговорить с психологом.',0)">Хуже</button></div>
   <div class="row"><button onclick="talk('s11')">К поддержке</button><button class="g" onclick="go('s6')">Домой</button></div></div></section>
 
-<section class="s desk" id="aiSettings"><h1>Подключение Gemini</h1><p>Введите адрес вашего backend. API-ключ вводится только в секретах сервера.</p><input type="url" id="backendUrl" placeholder="https://your-worker.workers.dev" aria-label="Адрес backend"><label><input type="checkbox" id="aiConsent">Разрешаю отправлять сообщения этого чата и последние реплики через мой backend в Google Gemini. Не отправляйте личные данные. Чат не сохраняется приложением; Google обрабатывает его по условиям выбранного API-тарифа.</label><div class="row"><button onclick="enableAI()">Включить AI</button><button class="g" onclick="disableAI()">Использовать демо</button><button class="g" onclick="go('s12')">Назад</button></div><p class="notice">AI может ошибаться. Он не врач. При ошибке подключения демо не подменяет ответ AI.</p></section><section class="s desk" id="map"><p>ВАШ МАЛЕНЬКИЙ МИР</p><h1>Куда отправимся?</h1><p>Выбирайте то, что подходит вам сейчас. Здесь нет обязательного темпа.</p><div class="dashboard">
+<section class="s desk" id="chatConsent"><h1>Перед началом разговора</h1><p>Здесь отвечает AI, а не человек. Он может ошибаться и не заменяет профессиональную помощь.</p><label style="max-width:560px;text-align:left;font-size:13px;line-height:1.8"><input type="checkbox" id="aiConsent" style="width:auto">Разрешаю отправлять сообщения и последние реплики диалога через сервер MindMirror в Google Gemini. Не указывайте личные данные. История не сохраняется приложением после закрытия страницы; обработка Google зависит от условий API.</label><div class="row"><button onclick="enableAI()">Начать разговор</button><button class="g" onclick="go('s10')">Вернуться</button></div></section><section class="s desk" id="map"><p>ВАШ МАЛЕНЬКИЙ МИР</p><h1>Куда отправимся?</h1><p>Выбирайте то, что подходит вам сейчас. Здесь нет обязательного темпа.</p><div class="dashboard">
 <button onclick="go('s6')">⌂ Дом<small>Погладьте пегаса и посмотрите первое задание.</small></button>
 <button onclick="go('s8')">☕ Кухня<small>Приготовьте чай или испеките печенье.</small></button>
-<button onclick="openChat()">✧ Чат поддержки<small>Демонстрация диалога без подключения к AI.</small></button>
+<button onclick="openChat()">✧ Чат поддержки<small>Разговор с виртуальным собеседником на базе Gemini.</small></button>
 <button onclick="go('breathing')">◯ Тихая пауза<small>Упражнение с таймером. Можно остановиться в любой момент.</small></button>
 <button onclick="go('s11')">❀ Сад<small>Отметьте своё самочувствие без оценки.</small></button>
 <button onclick="go('s10')">▣ Компьютер<small>Откройте карточки и чат поддержки.</small></button></div></section>
@@ -220,7 +220,7 @@ function go(id){$('worldNav').hidden=['s3','s4','s5'].includes(id);document.quer
 $('hud').classList.toggle('on',!['s3','s4','s5'].includes(id));if(id!=='breathing')stopBreath();paint();updateQuest();if(S.started)saveProgress()}
 function act(t,d){S.mood=Math.min(100,S.mood+d);logAction(t);paint();updateQuest();saveProgress();toast(t)}
 function pet(){document.querySelectorAll('.who').forEach(e=>{e.classList.remove('loved');void e.offsetWidth;e.classList.add('loved')});act(S.fn+' довольно прижал уши. Спасибо за ласку!',4)}
-function restart(){if(aiController)aiController.abort();aiHistory=[];clearTimeout(chatTimer);S.started=false;S.name='';S.history=[];S.done={};document.querySelectorAll('.chip.on,.ing.on').forEach(e=>e.classList.remove('on'));$('txt').value='';$('resume').hidden=true;step=0;busy=false;$('msgs').innerHTML='';qr([]);S.mood=40;S.fn='Друг';$('nm').value='';$('cn').value='';go('s3')}
+function restart(){if(aiController)aiController.abort();aiHistory=[];clearTimeout(chatTimer);aiEnabled=false;$('aiConsent').checked=false;S.started=false;S.name='';S.history=[];S.done={};document.querySelectorAll('.chip.on,.ing.on').forEach(e=>e.classList.remove('on'));$('txt').value='';$('resume').hidden=true;step=0;busy=false;$('msgs').innerHTML='';qr([]);S.mood=40;S.fn='Друг';$('nm').value='';$('cn').value='';go('s3')}
 function setName(){S.name=$('nm').value.trim()||'Гость';$('q').textContent=S.name+', что сейчас занимает ваши мысли?';go('s4')}
 function enter(){S.started=true;S.fn=$('cn').value.trim()||'Флаттершай';S.mood=Math.max(20,46-document.querySelectorAll('.chip.on').length*6);go('s6')}
 function talk(f){S.from=f;var t=document.querySelectorAll('.chip.on'),a=[].map.call(t,function(x){return x.textContent});
@@ -239,7 +239,7 @@ function add(t,me,sos){var d=document.createElement('div');d.className='msg'+(me
 var step=0,busy=false,chatTimer=null;
 var NEG=/не очень|не хорош|плох|тревож|устал|тяжел|груст|так же|хуже|ужас/i,POS=/хорош|отличн|супер|гуд|good|нормальн|лучше|класс|отлично/i;
 function qr(a){var q=$('qr');q.innerHTML='';a.forEach(function(t){var b=document.createElement('button');b.className='chip';b.textContent=t;b.onclick=function(){$('ci').value=t;send()};q.appendChild(b)})}
-function openChat(){if(!$('msgs').children.length){step=0;add('Привет, '+S.name+'! Как у тебя дела?');qr(['Нормально','Тревожно','Устал(а)'])}go('s12')}
+function openChat(){if(!aiEnabled){go('chatConsent');return}go('s12')}
 function reply(v){var neg=NEG.test(v),pos=POS.test(v)&&!neg;
 if(/экзамен|учеб|дедлайн|задани/i.test(v))return {t:'Похоже, сейчас много учебных задач. Какую одну маленькую часть можно выделить на ближайшие десять минут?',q:['Составить список','Сделать паузу']};
 if(/одинок|одиноче|скучаю/i.test(v))return {t:'Одиночество может быть тяжёлым. Есть ли человек, которому вам было бы комфортно написать короткое сообщение сегодня?',q:['Есть такой человек','Хочу сделать паузу']};
@@ -254,10 +254,9 @@ function demoSend(){var v=$('ci').value.trim();if(!v||busy)return;add(v,1);$('ci
  busy=true;add('печатает…');var ty=$('msgs').lastChild;
  chatTimer=setTimeout(function(){ty.remove();var r=reply(v);add(r.t);S.done=S.done||{};S.done.chat=true;saveProgress();updateQuest();step++;qr(r.q||[]);busy=false},900)}
 
-let aiEndpoint='',aiEnabled=false,aiHistory=[],aiController=null;
-function enableAI(){try{const u=new URL($('backendUrl').value.trim());if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||u.pathname!=='/')throw Error();if(!$('aiConsent').checked){toast('Подтвердите отправку сообщений в Gemini.');return}aiEndpoint=u.origin+'/chat';aiEnabled=true;aiHistory=[];$('msgs').replaceChildren();add('Привет! Я виртуальный собеседник MindMirror. Что хочется обсудить?');$('aiStatus').textContent='Gemini · сообщения отправляются через ваш backend';go('s12');toast('AI выбран. Подключение проверится при первом сообщении.')}catch(e){toast('Укажите HTTPS-адрес backend без пути, например https://example.workers.dev')}}
-function disableAI(){if(aiController)aiController.abort();aiEnabled=false;aiHistory=[];$('msgs').replaceChildren();$('aiStatus').textContent='Демонстрационный режим · AI не подключён';busy=false;openChat()}
-async function send(){if(!aiEnabled){demoSend();return}const text=$('ci').value.trim();if(!text||busy)return;if(text.length>1500){toast('Максимум 1500 символов.');return}busy=true;add(text,1);$('ci').value='';qr([]);add('Gemini отвечает…');const pending=$('msgs').lastChild;const controller=new AbortController();aiController=controller;const timer=setTimeout(()=>controller.abort(),30000);const messages=[...aiHistory,{role:'user',text}].slice(-11);try{const r=await fetch(aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages}),signal:controller.signal,credentials:'omit'});const data=await r.json();if(!r.ok||typeof data.text!=='string'||!data.text.trim())throw Error(data.error||'Не получен ответ.');pending.remove();add(data.text);aiHistory=[...messages,{role:'model',text:data.text.slice(0,1500)}];S.done=S.done||{};S.done.chat=true;saveProgress()}catch(e){pending.remove();if(aiEnabled){add(e.name==='AbortError'?'Запрос остановлен или истекло время ожидания. Повторите сообщение.':e.message);$('ci').value=text}}finally{clearTimeout(timer);if(aiController===controller){aiController=null;busy=false}}}
+const aiEndpoint='https://mindmirror-ai.raz1elfn2008.workers.dev/chat';let aiEnabled=false,aiHistory=[],aiController=null;
+function enableAI(){if(!$('aiConsent').checked){toast('Подтвердите отправку сообщений, чтобы начать разговор.');return}aiEnabled=true;aiHistory=[];$('msgs').replaceChildren();add('Привет! Я виртуальный собеседник MindMirror. Что хочется обсудить?');qr([]);go('s12')}
+async function send(){if(!aiEnabled){go('chatConsent');return}const text=$('ci').value.trim();if(!text||busy)return;if(text.length>1500){toast('Максимум 1500 символов.');return}busy=true;add(text,1);$('ci').value='';qr([]);add('Gemini отвечает…');const pending=$('msgs').lastChild;const controller=new AbortController();aiController=controller;const timer=setTimeout(()=>controller.abort(),30000);const messages=[...aiHistory,{role:'user',text}].slice(-11);try{const r=await fetch(aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages}),signal:controller.signal,credentials:'omit'});const data=await r.json();if(!r.ok||typeof data.text!=='string'||!data.text.trim())throw Error(data.error||'Не получен ответ.');pending.remove();add(data.text);aiHistory=[...messages,{role:'model',text:data.text.slice(0,1500)}];S.done=S.done||{};S.done.chat=true;saveProgress()}catch(e){pending.remove();if(aiEnabled){add(e.name==='AbortError'?'Запрос остановлен или истекло время ожидания. Повторите сообщение.':e.message);$('ci').value=text}}finally{clearTimeout(timer);if(aiController===controller){aiController=null;busy=false}}}
 
 $('ci').onkeydown=function(e){if(e.key==='Enter')send()};
 
